@@ -119,7 +119,7 @@ const EventList = () => {
   const getImageUrl = (image) => {
     if (!image) return '/placeholder.jpg';
     if (typeof image === 'string') return image; // fallback for old data
-    if (image._id) return `${API_BASE_URL}/api/upload/image/${image._id}`;
+    if (image._id) return `${API_BASE_URL}/upload/image/${image._id}`;
     return '/placeholder.jpg';
   };
 
