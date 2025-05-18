@@ -1,4 +1,3 @@
-// frontend/src/pages/admin/AdminEventForm.js
 import React, { useState, useEffect } from 'react';
 import API from '../../api';
 import { Form, Container, Button, Spinner, Alert } from 'react-bootstrap';
@@ -12,8 +11,14 @@ const AdminEventForm = () => {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const [form, setForm] = useState({
-    name: '', description: '', category: '',
-    date: '', venue: '', price: '', image: '', tags: ''
+    name: '',
+    description: '',
+    category: '',
+    date: '',
+    venue: '',
+    price: '',
+    image: '',
+    tags: ''
   });
   const [loading, setLoading] = useState(isEdit);
   const navigate = useNavigate();
@@ -28,7 +33,7 @@ const AdminEventForm = () => {
         const data = res.data;
         setForm({
           ...data,
-          date: data.date.slice(0,16),
+          date: data.date.slice(0, 16),
           tags: Array.isArray(data.tags) ? data.tags.join(', ') : data.tags || ''
         });
       })
@@ -43,23 +48,21 @@ const AdminEventForm = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     // normalize tags into array
-    let submitForm = { ...form };
+    const submitForm = { ...form };
     if (typeof submitForm.tags === 'string') {
       submitForm.tags = submitForm.tags
         .split(',')
         .map(tg => tg.trim())
         .filter(Boolean);
     }
+
     try {
+      const headers = { Authorization: `Bearer ${token}` };
       if (isEdit) {
-        await API.put(`/events/${id}`, submitForm, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.put(`/events/${id}`, submitForm, { headers });
         toast.success(t('Event updated'));
       } else {
-        await API.post('/events', submitForm, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.post('/events', submitForm, { headers });
         toast.success(t('Event created'));
       }
       navigate('/admin/events');
@@ -68,7 +71,7 @@ const AdminEventForm = () => {
     }
   };
 
-  // Dropzone + GridFS upload
+  // Dropzone + simple disk-storage upload
   const onDrop = async acceptedFiles => {
     const file = acceptedFiles[0];
     if (!file) return;
@@ -82,8 +85,8 @@ const AdminEventForm = () => {
           Authorization: `Bearer ${token}`
         }
       });
-      // store GridFS fileId
-      setForm(f => ({ ...f, image: res.data.imageId }));
+      // set image URL
+      setForm(f => ({ ...f, image: res.data.imageUrl }));
       toast.success(t('Image uploaded'));
     } catch {
       toast.error(t('Image upload failed'));
@@ -107,7 +110,9 @@ const AdminEventForm = () => {
       <Form onSubmit={handleSubmit}>
         {['name','category','venue'].map(field => (
           <Form.Group className="mb-3" key={field}>
-            <Form.Label>{t(field.charAt(0).toUpperCase() + field.slice(1))}</Form.Label>
+            <Form.Label>
+              {t(field.charAt(0).toUpperCase() + field.slice(1))}
+            </Form.Label>
             <Form.Control
               name={field}
               value={form[field]}
@@ -167,15 +172,20 @@ const AdminEventForm = () => {
           <div
             {...getRootProps({
               className: 'dropzone border p-3 text-center',
-              style: { cursor:'pointer', border:'2px dashed #ccc', borderRadius:10, background:'#fafafa' }
+              style: {
+                cursor: 'pointer',
+                border: '2px dashed #ccc',
+                borderRadius: '10px',
+                background: '#fafafa'
+              }
             })}
           >
             <input {...getInputProps()} />
             {form.image ? (
               <img
-                src={`${apiBase}/upload/image/${form.image}`}
+                src={form.image}
                 alt="Preview"
-                style={{ maxWidth:'100%', maxHeight:200 }}
+                style={{ maxWidth: '100%', maxHeight: 200 }}
               />
             ) : (
               <p>{t('Drag & drop an image here, or click to select')}</p>
