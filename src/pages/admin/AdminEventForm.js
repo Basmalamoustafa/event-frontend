@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const AdminEventForm = () => {
   const { t } = useTranslation();

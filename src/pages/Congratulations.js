@@ -3,7 +3,7 @@ import { Container, Card, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
 const Congratulations = () => {
   const { t } = useTranslation();
