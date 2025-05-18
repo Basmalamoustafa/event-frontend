@@ -147,7 +147,7 @@ const EventList = () => {
                 >
                   <Card.Img
                     variant="top"
-                    src={evt.image}
+                    src={`${process.env.REACT_APP_API_BASE_URL}/upload/image/${evt.image}`}
                     style={{ height: '180px', objectFit: 'cover' }}
                   />
                   <Card.Body>

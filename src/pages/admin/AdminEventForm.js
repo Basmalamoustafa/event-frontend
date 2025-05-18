@@ -1,3 +1,4 @@
+// frontend/src/pages/admin/AdminEventForm.js
 import React, { useState, useEffect } from 'react';
 import API from '../../api';
 import { Form, Container, Button, Spinner, Alert } from 'react-bootstrap';
@@ -17,19 +18,23 @@ const AdminEventForm = () => {
   const [loading, setLoading] = useState(isEdit);
   const navigate = useNavigate();
   const token = localStorage.getItem('authToken');
+  const apiBase = process.env.REACT_APP_API_BASE_URL;
 
+  // Load existing event when editing
   useEffect(() => {
     if (!isEdit) return;
     API.get(`/events/${id}`)
-      .then(res => setForm({
-        ...res.data,
-        date: res.data.date.slice(0, 16),
-        tags: Array.isArray(res.data.tags) ? res.data.tags.join(', ') : res.data.tags || ''
-      }))
+      .then(res => {
+        const data = res.data;
+        setForm({
+          ...data,
+          date: data.date.slice(0,16),
+          tags: Array.isArray(data.tags) ? data.tags.join(', ') : data.tags || ''
+        });
+      })
       .catch(() => toast.error(t('Failed to load event')))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line
-  }, [id, isEdit]);
+  }, [id, isEdit, t]);
 
   const handleChange = e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -37,6 +42,7 @@ const AdminEventForm = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    // normalize tags into array
     let submitForm = { ...form };
     if (typeof submitForm.tags === 'string') {
       submitForm.tags = submitForm.tags
@@ -62,10 +68,10 @@ const AdminEventForm = () => {
     }
   };
 
-  const onDrop = async (acceptedFiles) => {
+  // Dropzone + GridFS upload
+  const onDrop = async acceptedFiles => {
     const file = acceptedFiles[0];
     if (!file) return;
-
     const formData = new FormData();
     formData.append('image', file);
 
@@ -76,9 +82,10 @@ const AdminEventForm = () => {
           Authorization: `Bearer ${token}`
         }
       });
-      setForm(f => ({ ...f, image: res.data.imageUrl }));
+      // store GridFS fileId
+      setForm(f => ({ ...f, image: res.data.imageId }));
       toast.success(t('Image uploaded'));
-    } catch (err) {
+    } catch {
       toast.error(t('Image upload failed'));
     }
   };
@@ -90,7 +97,6 @@ const AdminEventForm = () => {
   });
 
   if (loading) return <Spinner animation="border" />;
-
   if (!token || localStorage.getItem('userRole') !== 'admin') {
     return <Alert variant="danger">{t('Access denied')}</Alert>;
   }
@@ -99,7 +105,7 @@ const AdminEventForm = () => {
     <Container style={{ maxWidth: 600, marginTop: '2rem' }}>
       <h2>{isEdit ? t('Edit Event') : t('Create New Event')}</h2>
       <Form onSubmit={handleSubmit}>
-        {['name', 'category', 'venue'].map(field => (
+        {['name','category','venue'].map(field => (
           <Form.Group className="mb-3" key={field}>
             <Form.Label>{t(field.charAt(0).toUpperCase() + field.slice(1))}</Form.Label>
             <Form.Control
@@ -110,6 +116,7 @@ const AdminEventForm = () => {
             />
           </Form.Group>
         ))}
+
         <Form.Group className="mb-3">
           <Form.Label>{t('Description')}</Form.Label>
           <Form.Control
@@ -120,6 +127,7 @@ const AdminEventForm = () => {
             onChange={handleChange}
           />
         </Form.Group>
+
         <Form.Group className="mb-3">
           <Form.Label>{t('Date & Time')}</Form.Label>
           <Form.Control
@@ -130,6 +138,7 @@ const AdminEventForm = () => {
             required
           />
         </Form.Group>
+
         <Form.Group className="mb-3">
           <Form.Label>{t('Price')}</Form.Label>
           <Form.Control
@@ -147,13 +156,8 @@ const AdminEventForm = () => {
           <Form.Label>{t('Tags (comma separated)')}</Form.Label>
           <Form.Control
             name="tags"
-            value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags || ''}
-            onChange={e =>
-              setForm(f => ({
-                ...f,
-                tags: e.target.value
-              }))
-            }
+            value={form.tags}
+            onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
             placeholder={t('e.g. music, live, outdoor')}
           />
         </Form.Group>
@@ -163,17 +167,16 @@ const AdminEventForm = () => {
           <div
             {...getRootProps({
               className: 'dropzone border p-3 text-center',
-              style: {
-                cursor: 'pointer',
-                border: '2px dashed #ccc',
-                borderRadius: '10px',
-                background: '#fafafa'
-              }
+              style: { cursor:'pointer', border:'2px dashed #ccc', borderRadius:10, background:'#fafafa' }
             })}
           >
             <input {...getInputProps()} />
             {form.image ? (
-              <img src={form.image} alt="Uploaded" style={{ maxWidth: '100%', maxHeight: 200 }} />
+              <img
+                src={`${apiBase}/upload/image/${form.image}`}
+                alt="Preview"
+                style={{ maxWidth:'100%', maxHeight:200 }}
+              />
             ) : (
               <p>{t('Drag & drop an image here, or click to select')}</p>
             )}
