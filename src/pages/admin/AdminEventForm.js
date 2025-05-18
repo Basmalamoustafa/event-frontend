@@ -89,7 +89,7 @@ const AdminEventForm = () => {
       // Set image as the API URL for preview, but store only the imageId on submit
       setForm(f => ({
         ...f,
-        image: `${API_BASE_URL}/api/upload/image/${res.data.imageId}`
+        image: `${API_BASE_URL}/upload/image/${res.data.imageId}`
       }));
       toast.success(t('Image uploaded'));
     } catch (err) {
