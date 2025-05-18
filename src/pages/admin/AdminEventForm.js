@@ -28,7 +28,7 @@ const AdminEventForm = () => {
         date: res.data.date.slice(0, 16),
         tags: Array.isArray(res.data.tags) ? res.data.tags.join(', ') : res.data.tags || '',
         image: res.data.image && res.data.image._id
-          ? `${API_BASE_URL}/api/upload/image/${res.data.image._id}`
+          ? `${API_BASE_URL}/upload/image/${res.data.image._id}`
           : ''
       }))
       .catch(() => toast.error(t('Failed to load event')))
