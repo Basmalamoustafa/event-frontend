@@ -1,0 +1,162 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9fb;
+  color: #222;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+button, .btn {
+  border-radius: 6px;
+}
+.container {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.dark-mode {
+  background-color: #181a1b !important;
+  color: #f1f1f1 !important;
+}
+
+.dark-mode .card {
+  background-color: #23272b;
+  color: #f1f1f1;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.dark-mode .container {
+  background-color: transparent;
+}
+
+.dark-mode .btn,
+.dark-mode button {
+  background-color: #343a40;
+  color: #f1f1f1;
+  border-color: #444;
+}
+
+.dark-mode .btn-primary {
+  background-color: #375a7f;
+  border-color: #375a7f;
+}
+
+.dark-mode .btn-outline-primary {
+  color: #f1f1f1;
+  border-color: #f1f1f1;
+}
+
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background-color: #23272b;
+  color: #f1f1f1;
+  border-color: #444;
+}
+
+.dark-mode .table,
+.dark-mode .table th,
+.dark-mode .table td {
+  background-color: #181a1b !important;
+  color: #f1f1f1 !important;
+}
+
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: #23272b !important;
+}
+
+.dark-mode .table-striped > tbody > tr:nth-of-type(even) {
+  background-color: #181a1b !important;
+}
+
+.dark-mode .table-bordered,
+.dark-mode .table-bordered th,
+.dark-mode .table-bordered td {
+  border-color: #444 !important;
+}
+
+.dark-mode .modal-content {
+  background-color: #23272b !important;
+  color: #f1f1f1 !important;
+  border-color: #444 !important;
+}
+
+.dark-mode .modal-header,
+.dark-mode .modal-body,
+.dark-mode .modal-footer {
+  background-color: #23272b !important;
+  color: #f1f1f1 !important;
+  border-color: #444 !important;
+}
+
+.dark-mode .modal-title {
+  color: #f1f1f1 !important;
+}
+
+.dark-mode .btn-close {
+  filter: invert(1);
+}
+
+.dark-mode .text-muted {
+  color: #e0e0e0 !important;
+}
+
+/* Make form labels white in dark mode */
+.dark-mode label,
+.dark-mode .form-label {
+  color: #f1f1f1 !important;
+}
+
+/* Make input placeholder text white in dark mode */
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: #cccccc !important;
+  opacity: 1 !important;
+}
+
+.dark-mode .dropzone {
+  background: #23272b!important;
+  border-color: #444 !important;
+  color: #f1f1f1 !important;
+}
+
+body[dir="rtl"] .dropdown-menu {
+  right: 0 !important;
+  left: auto !important;
+  text-align: right;
+  min-width: 100% !important;
+  width: max-content;
+  box-sizing: border-box;
+}
+body[dir="rtl"] select,
+body[dir="rtl"] .form-select {
+  background-position: left 0.75rem center !important;
+  padding-right: 0.75rem !important;
+  padding-left: 2.25rem !important;
+}
+
+/* RTL select width fix for dropdown visibility */
+body[dir="rtl"] .form-select {
+  width: 250px !important;
+  min-width: 200px !important;
+}
+body[dir="ltr"] .form-select {
+  width: 250px !important;
+  min-width: 200px !important;
+  text-align: left;
+  direction: ltr;
+}
+
+body[dir="rtl"] .navbar .btn-logout,
+body[dir="rtl"] .navbar .logout-btn,
+body[dir="rtl"] .navbar .btn-register {
+  margin-left: 0.5rem !important;
+  margin-right: 0.5rem !important;
+}
