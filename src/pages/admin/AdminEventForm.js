@@ -6,40 +6,35 @@ import { toast } from 'react-toastify';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+
 const AdminEventForm = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const isEdit = Boolean(id);
   const [form, setForm] = useState({
-    name: '',
-    description: '',
-    category: '',
-    date: '',
-    venue: '',
-    price: '',
-    image: '',
-    tags: ''
+    name: '', description: '', category: '',
+    date: '', venue: '', price: '', image: '', tags: ''
   });
   const [loading, setLoading] = useState(isEdit);
   const navigate = useNavigate();
   const token = localStorage.getItem('authToken');
-  const apiBase = process.env.REACT_APP_API_BASE_URL;
 
-  // Load existing event when editing
   useEffect(() => {
     if (!isEdit) return;
     API.get(`/events/${id}`)
-      .then(res => {
-        const data = res.data;
-        setForm({
-          ...data,
-          date: data.date.slice(0, 16),
-          tags: Array.isArray(data.tags) ? data.tags.join(', ') : data.tags || ''
-        });
-      })
+      .then(res => setForm({
+        ...res.data,
+        date: res.data.date.slice(0, 16),
+        tags: Array.isArray(res.data.tags) ? res.data.tags.join(', ') : res.data.tags || '',
+        image: res.data.image && res.data.image._id
+          ? `${API_BASE_URL}/api/upload/image/${res.data.image._id}`
+          : ''
+      }))
       .catch(() => toast.error(t('Failed to load event')))
       .finally(() => setLoading(false));
-  }, [id, isEdit, t]);
+    // eslint-disable-next-line
+  }, [id, isEdit]);
 
   const handleChange = e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -47,22 +42,28 @@ const AdminEventForm = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    // normalize tags into array
-    const submitForm = { ...form };
+    let submitForm = { ...form };
     if (typeof submitForm.tags === 'string') {
       submitForm.tags = submitForm.tags
         .split(',')
         .map(tg => tg.trim())
         .filter(Boolean);
     }
-
+    // If image is a full URL, extract the imageId from the URL
+    if (submitForm.image && submitForm.image.startsWith(API_BASE_URL)) {
+      const match = submitForm.image.match(/\/api\/upload\/image\/([a-f\d]{24})/);
+      if (match) submitForm.image = match[1];
+    }
     try {
-      const headers = { Authorization: `Bearer ${token}` };
       if (isEdit) {
-        await API.put(`/events/${id}`, submitForm, { headers });
+        await API.put(`/events/${id}`, submitForm, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         toast.success(t('Event updated'));
       } else {
-        await API.post('/events', submitForm, { headers });
+        await API.post('/events', submitForm, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         toast.success(t('Event created'));
       }
       navigate('/admin/events');
@@ -71,10 +72,10 @@ const AdminEventForm = () => {
     }
   };
 
-  // Dropzone + simple disk-storage upload
-  const onDrop = async acceptedFiles => {
+  const onDrop = async (acceptedFiles) => {
     const file = acceptedFiles[0];
     if (!file) return;
+
     const formData = new FormData();
     formData.append('image', file);
 
@@ -85,10 +86,13 @@ const AdminEventForm = () => {
           Authorization: `Bearer ${token}`
         }
       });
-      // set image URL
-      setForm(f => ({ ...f, image: res.data.imageUrl }));
+      // Set image as the API URL for preview, but store only the imageId on submit
+      setForm(f => ({
+        ...f,
+        image: `${API_BASE_URL}/api/upload/image/${res.data.imageId}`
+      }));
       toast.success(t('Image uploaded'));
-    } catch {
+    } catch (err) {
       toast.error(t('Image upload failed'));
     }
   };
@@ -100,6 +104,7 @@ const AdminEventForm = () => {
   });
 
   if (loading) return <Spinner animation="border" />;
+
   if (!token || localStorage.getItem('userRole') !== 'admin') {
     return <Alert variant="danger">{t('Access denied')}</Alert>;
   }
@@ -108,11 +113,9 @@ const AdminEventForm = () => {
     <Container style={{ maxWidth: 600, marginTop: '2rem' }}>
       <h2>{isEdit ? t('Edit Event') : t('Create New Event')}</h2>
       <Form onSubmit={handleSubmit}>
-        {['name','category','venue'].map(field => (
+        {['name', 'category', 'venue'].map(field => (
           <Form.Group className="mb-3" key={field}>
-            <Form.Label>
-              {t(field.charAt(0).toUpperCase() + field.slice(1))}
-            </Form.Label>
+            <Form.Label>{t(field.charAt(0).toUpperCase() + field.slice(1))}</Form.Label>
             <Form.Control
               name={field}
               value={form[field]}
@@ -121,7 +124,6 @@ const AdminEventForm = () => {
             />
           </Form.Group>
         ))}
-
         <Form.Group className="mb-3">
           <Form.Label>{t('Description')}</Form.Label>
           <Form.Control
@@ -132,7 +134,6 @@ const AdminEventForm = () => {
             onChange={handleChange}
           />
         </Form.Group>
-
         <Form.Group className="mb-3">
           <Form.Label>{t('Date & Time')}</Form.Label>
           <Form.Control
@@ -143,7 +144,6 @@ const AdminEventForm = () => {
             required
           />
         </Form.Group>
-
         <Form.Group className="mb-3">
           <Form.Label>{t('Price')}</Form.Label>
           <Form.Control
@@ -161,8 +161,13 @@ const AdminEventForm = () => {
           <Form.Label>{t('Tags (comma separated)')}</Form.Label>
           <Form.Control
             name="tags"
-            value={form.tags}
-            onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
+            value={Array.isArray(form.tags) ? form.tags.join(', ') : form.tags || ''}
+            onChange={e =>
+              setForm(f => ({
+                ...f,
+                tags: e.target.value
+              }))
+            }
             placeholder={t('e.g. music, live, outdoor')}
           />
         </Form.Group>
@@ -182,11 +187,7 @@ const AdminEventForm = () => {
           >
             <input {...getInputProps()} />
             {form.image ? (
-              <img
-                src={form.image}
-                alt="Preview"
-                style={{ maxWidth: '100%', maxHeight: 200 }}
-              />
+              <img src={form.image} alt="Uploaded" style={{ maxWidth: '100%', maxHeight: 200 }} />
             ) : (
               <p>{t('Drag & drop an image here, or click to select')}</p>
             )}
